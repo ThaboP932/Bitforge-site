@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BitForge — Free Animated Tech Courses</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f2eb;
+      --orange: #ff5c00;
+      --orange2: #ff8c42;
+      --teal: #00d4b4;
+      --grey: #1c1c1c;
+      --mid: #2a2a2a;
+      --font-head: 'Syne', sans-serif;
+      --font-mono: 'Space Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font-mono);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* Custom cursor */
+    .cursor {
+      width: 14px; height: 14px;
+      background: var(--orange);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+      mix-blend-mode: difference;
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1.5px solid var(--orange);
+      border-radius: 50%;
+      position: fixed;
+      top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: left 0.12s ease, top 0.12s ease, width 0.2s, height 0.2s;
+    }
+
+    /* Noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.5;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 50;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.4rem 3rem;
+      border-bottom: 1px solid #1f1f1f;
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+    }
+    .logo {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 1.4rem;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .logo span { color: var(--orange); }
+    .logo-dot { width: 8px; height: 8px; background: var(--teal); border-radius: 50%; display: inline-block; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.3)} }
+
+    nav ul { list-style: none; display: flex; gap: 2rem; }
+    nav ul a { color: var(--white); text-decoration: none; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.6; transition: opacity 0.2s, color 0.2s; }
+    nav ul a:hover { opacity: 1; color: var(--teal); }
+
+    .nav-cta {
+      background: var(--orange);
+      color: var(--black);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: none;
+      padding: 0.6rem 1.4rem;
+      cursor: none;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .nav-cta:hover { background: var(--orange2); transform: translateY(-1px); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 8rem 3rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-grid-bg {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,92,0,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,92,0,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: gridDrift 20s linear infinite;
+    }
+    @keyframes gridDrift { 0%{transform:translate(0,0)} 100%{transform:translate(60px,60px)} }
+
+    .hero-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+    .orb1 { width: 600px; height: 600px; background: rgba(255,92,0,0.12); top: -100px; right: -150px; animation: orbFloat 8s ease-in-out infinite; }
+    .orb2 { width: 400px; height: 400px; background: rgba(0,212,180,0.08); bottom: 0; left: -100px; animation: orbFloat 10s ease-in-out infinite reverse; }
+    @keyframes orbFloat { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,-30px)} }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--teal);
+      border: 1px solid rgba(0,212,180,0.3);
+      padding: 0.4rem 1rem;
+      width: fit-content;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.8s ease forwards;
+      opacity: 0;
+    }
+    .tag-dash { width: 20px; height: 1px; background: var(--teal); }
+
+    .hero h1 {
+      font-family: var(--font-head);
+      font-size: clamp(3.5rem, 9vw, 8rem);
+      font-weight: 800;
+      line-height: 0.92;
+      letter-spacing: -0.03em;
+      max-width: 900px;
+      animation: fadeUp 0.8s ease 0.15s forwards;
+      opacity: 0;
+    }
+    .hero h1 em { font-style: normal; color: var(--orange); position: relative; }
+    .hero h1 em::after {
+      content: '';
+      position: absolute;
+      bottom: 4px; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--orange), var(--teal));
+      transform: scaleX(0);
+      transform-origin: left;
+      animation: underlineGrow 0.6s ease 1s forwards;
+    }
+    @keyframes underlineGrow { to { transform: scaleX(1); } }
+
+    .hero-sub {
+      margin-top: 2.5rem;
+      font-size: 0.95rem;
+      line-height: 1.8;
+      max-width: 520px;
+      opacity: 0;
+      color: rgba(245,242,235,0.65);
+      animation: fadeUp 0.8s ease 0.3s forwards;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 3rem;
+      align-items: center;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.45s forwards;
+    }
+
+    .btn-primary {
+      background: var(--orange);
+      color: var(--black);
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border: none;
+      padding: 1rem 2.2rem;
+      cursor: none;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.15);
+      transform: translateX(-110%) skewX(-15deg);
+      transition: transform 0.4s ease;
+    }
+    .btn-primary:hover::after { transform: translateX(110%) skewX(-15deg); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,92,0,0.35); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--white);
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border: 1px solid rgba(245,242,235,0.2);
+      padding: 1rem 2.2rem;
+      cursor: none;
+      transition: all 0.2s;
+    }
+    .btn-ghost:hover { border-color: var(--teal); color: var(--teal); }
+
+    .hero-stats {
+      display: flex;
+      gap: 3rem;
+      margin-top: 5rem;
+      padding-top: 2.5rem;
+      border-top: 1px solid rgba(245,242,235,0.08);
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.6s forwards;
+      flex-wrap: wrap;
+    }
+    .stat-num {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 2.2rem;
+      color: var(--white);
+      line-height: 1;
+    }
+    .stat-num span { color: var(--orange); }
+    .stat-label { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,242,235,0.4); margin-top: 0.4rem; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* MARQUEE */
+    .marquee-wrap {
+      overflow: hidden;
+      padding: 1.4rem 0;
+      border-top: 1px solid #1c1c1c;
+      border-bottom: 1px solid #1c1c1c;
+      background: var(--grey);
+    }
+    .marquee-track {
+      display: flex;
+      gap: 0;
+      white-space: nowrap;
+      animation: marquee 22s linear infinite;
+    }
+    @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+    .marquee-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 1.2rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(245,242,235,0.45);
+      padding: 0 2.5rem;
+    }
+    .marquee-dot { width: 5px; height: 5px; background: var(--orange); border-radius: 50%; flex-shrink: 0; }
+
+    /* SECTION SHARED */
+    section { padding: 6rem 3rem; }
+    .section-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .section-label::before { content: '//'; opacity: 0.5; }
+    .section-title {
+      font-family: var(--font-head);
+      font-size: clamp(2rem, 5vw, 3.8rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+    }
+
+    /* COURSES */
+    .courses { background: var(--black); }
+    .courses-header { max-width: 600px; margin-bottom: 4rem; }
+    .courses-header p { margin-top: 1.2rem; color: rgba(245,242,235,0.5); font-size: 0.9rem; line-height: 1.8; }
+
+    .courses-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5px;
+      background: #1c1c1c;
+      border: 1.5px solid #1c1c1c;
+    }
+    .course-card {
+      background: var(--black);
+      padding: 2.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.25s;
+      cursor: none;
+    }
+    .course-card:hover { background: #111; }
+    .course-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--orange), var(--teal));
+      transform: scaleX(0);
+      transition: transform 0.4s ease;
+      transform-origin: left;
+    }
+    .course-card:hover::before { transform: scaleX(1); }
+
+    .course-icon {
+      width: 48px; height: 48px;
+      border: 1px solid rgba(255,92,0,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1.5rem;
+      color: var(--orange);
+      background: rgba(255,92,0,0.06);
+    }
+    .course-card h3 {
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-bottom: 0.7rem;
+      letter-spacing: -0.01em;
+    }
+    .course-card p { font-size: 0.82rem; color: rgba(245,242,235,0.5); line-height: 1.8; }
+    .course-meta {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1.8rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(245,242,235,0.35);
+    }
+    .course-badge {
+      display: inline-block;
+      background: rgba(0,212,180,0.1);
+      border: 1px solid rgba(0,212,180,0.25);
+      color: var(--teal);
+      font-size: 0.65rem;
+      padding: 0.2rem 0.6rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    /* WHY */
+    .why { background: var(--grey); position: relative; overflow: hidden; }
+    .why::before {
+      content: 'BITFORGE';
+      position: absolute;
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 18vw;
+      color: rgba(255,255,255,0.015);
+      right: -2vw;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      letter-spacing: -0.05em;
+    }
+    .why-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: center;
+      margin-top: 4rem;
+    }
+    .why-features { display: flex; flex-direction: column; gap: 2rem; }
+    .why-feature {
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+    .feat-num {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 2.5rem;
+      line-height: 1;
+      color: rgba(255,92,0,0.2);
+      min-width: 60px;
+    }
+    .feat-body h4 { font-family: var(--font-head); font-weight: 700; font-size: 1.1rem; margin-bottom: 0.4rem; }
+    .feat-body p { font-size: 0.82rem; color: rgba(245,242,235,0.5); line-height: 1.8; }
+
+    .why-visual {
+      position: relative;
+    }
+    .code-window {
+      background: #0d0d0d;
+      border: 1px solid #2a2a2a;
+      padding: 2rem;
+      font-size: 0.78rem;
+      line-height: 1.9;
+      position: relative;
+    }
+    .code-window::before {
+      content: '● ● ●';
+      display: block;
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      color: #444;
+      margin-bottom: 1.4rem;
+    }
+    .code-kw { color: var(--orange); }
+    .code-fn { color: var(--teal); }
+    .code-str { color: #ffe082; }
+    .code-cm { color: #555; }
+    .code-indent { padding-left: 1.5rem; }
+    .code-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: var(--teal);
+      vertical-align: middle;
+      animation: blink 1.1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .code-badge {
+      position: absolute;
+      bottom: -1px; right: -1px;
+      background: var(--orange);
+      color: var(--black);
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.4rem 0.9rem;
+      font-weight: 700;
+    }
+
+    /* YOUTUBE SECTION */
+    .youtube { background: var(--black); }
+    .yt-content { max-width: 700px; margin: 0 auto; text-align: center; }
+    .yt-icon {
+      width: 72px; height: 72px;
+      background: var(--orange);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 2rem;
+      font-size: 1.8rem;
+      animation: ytPulse 2.5s ease-in-out infinite;
+    }
+    @keyframes ytPulse {
+      0%,100%{ box-shadow: 0 0 0 0 rgba(255,92,0,0.4); }
+      50%{ box-shadow: 0 0 0 20px rgba(255,92,0,0); }
+    }
+    .yt-content .section-label { justify-content: center; }
+    .yt-content .section-title { text-align: center; margin-bottom: 1.5rem; }
+    .yt-content p { color: rgba(245,242,235,0.55); font-size: 0.9rem; line-height: 1.9; margin-bottom: 2.5rem; }
+
+    .yt-perks {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 3rem;
+      flex-wrap: wrap;
+    }
+    .yt-perk {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(245,242,235,0.45);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .yt-perk-dot { width: 6px; height: 6px; background: var(--teal); border-radius: 50%; }
+
+    /* SUBSCRIBE FORM */
+    .subscribe { background: var(--grey); }
+    .sub-inner {
+      max-width: 640px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .sub-inner .section-label { justify-content: center; }
+    .sub-inner .section-title { text-align: center; margin-bottom: 1rem; }
+    .sub-inner > p { color: rgba(245,242,235,0.5); font-size: 0.88rem; line-height: 1.9; margin-bottom: 2.5rem; }
+    .sub-form {
+      display: flex;
+      gap: 0;
+      border: 1.5px solid rgba(255,255,255,0.1);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .sub-form:focus-within { border-color: var(--orange); }
+    .sub-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 1rem 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--white);
+      letter-spacing: 0.05em;
+    }
+    .sub-input::placeholder { color: rgba(245,242,235,0.25); }
+    .sub-btn {
+      background: var(--orange);
+      color: var(--black);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      border: none;
+      padding: 0 1.8rem;
+      cursor: none;
+      white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .sub-btn:hover { background: var(--orange2); }
+    .sub-note { margin-top: 1rem; font-size: 0.68rem; color: rgba(245,242,235,0.25); letter-spacing: 0.05em; }
+
+    /* FOOTER */
+    footer {
+      background: var(--black);
+      border-top: 1px solid #1c1c1c;
+      padding: 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: gap;
+      gap: 1.5rem;
+    }
+    .footer-logo { font-family: var(--font-head); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em; }
+    .footer-logo span { color: var(--orange); }
+    footer p { font-size: 0.72rem; color: rgba(245,242,235,0.3); letter-spacing: 0.08em; }
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a { font-size: 0.7rem; color: rgba(245,242,235,0.35); text-decoration: none; letter-spacing: 0.1em; text-transform: uppercase; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--teal); }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      nav { padding: 1.2rem 1.5rem; }
+      nav ul { display: none; }
+      .hero { padding: 7rem 1.5rem 3rem; }
+      section { padding: 4rem 1.5rem; }
+      .why-grid { grid-template-columns: 1fr; gap: 3rem; }
+      .hero-stats { gap: 2rem; }
+      footer { flex-direction: column; padding: 2rem 1.5rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    Bit<span>Forge</span>
+  </div>
+  <ul>
+    <li><a href="#courses">Courses</a></li>
+    <li><a href="#why">Why Us</a></li>
+    <li><a href="#youtube">YouTube</a></li>
+  </ul>
+  <button class="nav-cta">Subscribe Free</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="orb1 hero-orb"></div>
+  <div class="orb2 hero-orb"></div>
+
+  <div class="hero-tag">
+    <span class="tag-dash"></span>
+    100% Free · Animated · For Builders
+    <span class="tag-dash"></span>
+  </div>
+
+  <h1>Learn Tech.<br/><em>Actually</em><br/>Understand It.</h1>
+
+  <p class="hero-sub">
+    BitForge turns complex tech concepts into crisp, animated video courses — completely free on YouTube. From code fundamentals to system design, built for curious minds.
+  </p>
+
+  <div class="hero-actions">
+    <button class="btn-primary">▶ &nbsp;Watch on YouTube</button>
+    <button class="btn-ghost">Explore Courses</button>
+  </div>
+
+  <div class="hero-stats">
+    <div>
+      <div class="stat-num">50<span>+</span></div>
+      <div class="stat-label">Free Videos</div>
+    </div>
+    <div>
+      <div class="stat-num">8<span>+</span></div>
+      <div class="stat-label">Topic Tracks</div>
+    </div>
+    <div>
+      <div class="stat-num">0<span>$</span></div>
+      <div class="stat-label">Forever Free</div>
+    </div>
+    <div>
+      <div class="stat-num">100<span>%</span></div>
+      <div class="stat-label">Animated</div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track" id="marqueeTrack"></div>
+</div>
+
+<!-- COURSES -->
+<section class="courses" id="courses">
+  <div class="courses-header">
+    <div class="section-label">Course Tracks</div>
+    <h2 class="section-title">Pick Your<br/>Learning Path</h2>
+    <p>Every course is designed with animated visuals so you don't just read the concept — you see it happen.</p>
+  </div>
+
+  <div class="courses-grid">
+    <div class="course-card">
+      <div class="course-badge">Beginner Friendly</div>
+      <div class="course-icon">⟨/⟩</div>
+      <h3>Web Development</h3>
+      <p>HTML, CSS, JavaScript and beyond. Build real projects from scratch with clear, animated breakdowns.</p>
+      <div class="course-meta">
+        <span>12 Episodes</span>
+        <span>~3 hrs</span>
+      </div>
+    </div>
+    <div class="course-card">
+      <div class="course-badge">In Production</div>
+      <div class="course-icon">⬡</div>
+      <h3>Data Structures & Algorithms</h3>
+      <p>Visualize sorting, searching, and problem-solving patterns the way your brain actually wants to see them.</p>
+      <div class="course-meta">
+        <span>18 Episodes</span>
+        <span>~5 hrs</span>
+      </div>
+    </div>
+    <div class="course-card">
+      <div class="course-badge">Coming Soon</div>
+      <div class="course-icon">◫</div>
+      <h3>System Design</h3>
+      <p>How do large-scale systems actually work? Animated architecture diagrams, trade-offs, and real-world case studies.</p>
+      <div class="course-meta">
+        <span>10 Episodes</span>
+        <span>~4 hrs</span>
+      </div>
+    </div>
+    <div class="course-card">
+      <div class="course-badge">Coming Soon</div>
+      <div class="course-icon">⬕</div>
+      <h3>Git & DevOps Fundamentals</h3>
+      <p>Version control, CI/CD, Docker — demystified with animations that show exactly what's happening under the hood.</p>
+      <div class="course-meta">
+        <span>8 Episodes</span>
+        <span>~2 hrs</span>
+      </div>
+    </div>
+    <div class="course-card">
+      <div class="course-badge">Beginner Friendly</div>
+      <div class="course-icon">∿</div>
+      <h3>Python for Everyone</h3>
+      <p>From zero to writing real scripts. No jargon, no gatekeeping — just clean animation and clear logic.</p>
+      <div class="course-meta">
+        <span>14 Episodes</span>
+        <span>~3.5 hrs</span>
+      </div>
+    </div>
+    <div class="course-card">
+      <div class="course-badge">Coming Soon</div>
+      <div class="course-icon">⬡</div>
+      <h3>AI & Machine Learning 101</h3>
+      <p>Understand neural networks, training, and how modern AI tools work — without a PhD required.</p>
+      <div class="course-meta">
+        <span>15 Episodes</span>
+        <span>~5 hrs</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="why" id="why">
+  <div class="section-label">Why BitForge</div>
+  <h2 class="section-title">Built Different.<br/>Taught Better.</h2>
+
+  <div class="why-grid">
+    <div class="why-features">
+      <div class="why-feature">
+        <div class="feat-num">01</div>
+        <div class="feat-body">
+          <h4>Animation-First Teaching</h4>
+          <p>Concepts are visualized from the ground up. Watch data flow, memory allocate, and algorithms execute — frame by frame.</p>
+        </div>
+      </div>
+      <div class="why-feature">
+        <div class="feat-num">02</div>
+        <div class="feat-body">
+          <h4>No Filler, No Fluff</h4>
+          <p>Every second of every video is intentional. Dense with insight, light on repetition. Your time is respected.</p>
+        </div>
+      </div>
+      <div class="why-feature">
+        <div class="feat-num">03</div>
+        <div class="feat-body">
+          <h4>Structured Learning Paths</h4>
+          <p>Videos are organized into clear tracks. Follow a path from beginner to confident — not a random playlist.</p>
+        </div>
+      </div>
+      <div class="why-feature">
+        <div class="feat-num">04</div>
+        <div class="feat-body">
+          <h4>Completely Free, Always</h4>
+          <p>No upsells, no paywalls, no "premium" tier. Knowledge is a public good. BitForge is committed to keeping it that way.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="why-visual">
+      <div class="code-window">
+        <div><span class="code-kw">function</span> <span class="code-fn">bubbleSort</span>(arr) {</div>
+        <div class="code-indent"><span class="code-kw">let</span> n = arr.length;</div>
+        <div class="code-indent code-cm">// 🎬 Animated in the video</div>
+        <div class="code-indent"><span class="code-kw">for</span> (<span class="code-kw">let</span> i = 0; i &lt; n; i++) {</div>
+        <div class="code-indent code-indent"><span class="code-kw">for</span> (<span class="code-kw">let</span> j = 0; j &lt; n-i-1; j++) {</div>
+        <div class="code-indent code-indent code-indent"><span class="code-kw">if</span> (arr[j] &gt; arr[j+1]) {</div>
+        <div class="code-indent code-indent code-indent code-indent"><span class="code-fn">swap</span>(arr, j, j+1);</div>
+        <div class="code-indent code-indent code-indent">}</div>
+        <div class="code-indent code-indent">}</div>
+        <div class="code-indent">}</div>
+        <div><span class="code-kw">return</span> arr; <span class="code-cursor"></span></div>
+        <div>}</div>
+        <div class="code-badge">EP. 04 — DSA</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- YOUTUBE -->
+<section class="youtube" id="youtube">
+  <div class="yt-content">
+    <div class="section-label">YouTube Channel</div>
+    <div class="yt-icon">▶</div>
+    <h2 class="section-title">All Videos,<br/>Free on YouTube</h2>
+    <p>
+      Every course lives on our YouTube channel — no login required, no subscription fee.
+      Hit subscribe to get notified when new animated lessons drop every week.
+    </p>
+    <div class="yt-perks">
+      <div class="yt-perk"><span class="yt-perk-dot"></span>New videos weekly</div>
+      <div class="yt-perk"><span class="yt-perk-dot"></span>Full HD animations</div>
+      <div class="yt-perk"><span class="yt-perk-dot"></span>Subtitles included</div>
+      <div class="yt-perk"><span class="yt-perk-dot"></span>Community Q&A</div>
+    </div>
+    <button class="btn-primary" style="margin: 0 auto; display: flex;">▶ &nbsp; Go to YouTube Channel</button>
+  </div>
+</section>
+
+<!-- SUBSCRIBE -->
+<section class="subscribe">
+  <div class="sub-inner">
+    <div class="section-label">Stay in the Loop</div>
+    <h2 class="section-title">New Course<br/>Notifications</h2>
+    <p>Get notified when new tracks and episodes launch. We send one email per release — no spam, ever.</p>
+    <div class="sub-form">
+      <input class="sub-input" type="email" placeholder="your@email.com" />
+      <button class="sub-btn">Notify Me</button>
+    </div>
+    <p class="sub-note">Free forever. Unsubscribe anytime. No marketing nonsense.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-logo">Bit<span>Forge</span></div>
+    <p style="margin-top:0.5rem;">Free animated tech courses for everyone.</p>
+  </div>
+  <div class="footer-links">
+    <a href="#">YouTube</a>
+    <a href="#">Courses</a>
+    <a href="#">About</a>
+    <a href="#">Contact</a>
+  </div>
+  <p>© 2026 BitForge. All rights reserved.</p>
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  document.addEventListener('mousemove', e => {
+    cursor.style.left = e.clientX + 'px';
+    cursor.style.top = e.clientY + 'px';
+    setTimeout(() => {
+      ring.style.left = e.clientX + 'px';
+      ring.style.top = e.clientY + 'px';
+    }, 60);
+  });
+
+  // Marquee
+  const topics = [
+    'JavaScript', 'Python', 'Data Structures', 'Algorithms', 'React',
+    'System Design', 'Git', 'Docker', 'APIs', 'Machine Learning',
+    'CSS Animations', 'TypeScript', 'Node.js', 'Databases', 'Linux'
+  ];
+  const track = document.getElementById('marqueeTrack');
+  const full = [...topics, ...topics].map(t =>
+    `<span class="marquee-item"><span class="marquee-dot"></span>${t}</span>`
+  ).join('');
+  track.innerHTML = full + full;
+</script>
+</body>
+</html>
